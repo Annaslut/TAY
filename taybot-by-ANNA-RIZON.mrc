@@ -68,7 +68,7 @@ on *:TEXT:*:#: {
       writeini $balancefile Users $nick $calc(%giver_balance - %amount)
       var %recipient_balance = $readini($balancefile, Users, %recipient)
       writeini $balancefile Users %recipient $calc(%recipient_balance + %amount)
-      msg $chan $nick gave $2 $chr(36) $+ $3! $nick $+ 's new balance is $chr(36) $+ $readini($balancefile, Users, $nick). $2's new balance is now $chr(36) $+ $readini($balancefile, Users, %recipient).
+      msg $chan $nick gave $2 3 $+ $chr(36) $+ $3! $nick $+ 's new balance is3 $chr(36) $+ $readini($balancefile, Users, $nick).  $+ $2's new balance is now 3 $+ $chr(36) $+ $readini($balancefile, Users, %recipient).
     }
   }
 
@@ -80,7 +80,7 @@ on *:TEXT:*:#: {
       if (%remaining > 0) {
         var %minutes = $int($calc(%remaining / 60))
         var %seconds = $calc(%remaining % 60)
-        msg $chan $nick, u slut, you need to wait %minutes $+ minutes and %seconds $+ seconds before you can mug again!
+        msg $chan $nick, u slut, you need to wait52 %minutes minutes and62 %seconds seconds before you can mug again!
         halt
       }
     }
@@ -97,12 +97,12 @@ on *:TEXT:*:#: {
         msg $chan $nick, $2 doesn't have enough money to be mugged.
       }
       else {
-        var %mug_amount = $rand(20, $calc(%target_balance * 0.5))
+        var %mug_amount = $rand(20, $calc(%target_balance * 0.3))
         writeini $balancefile Users %target $calc(%target_balance - %mug_amount)
         var %mugger_balance = $readini($balancefile, Users, $nick)
         writeini $balancefile Users $nick $calc(%mugger_balance + %mug_amount)
-        msg $chan 9OMG $nick 9you 11managed 13to 08mug $2 6for3 $ %mug_amount $+ ! $nick $+ 's new balance is3 $chr(36) $+ $readini($balancefile, Users, $nick).13 $2's new balance is3 $readini($balancefile, Users, %target).
-      }
+        msg $chan 9OMG $nick 9you 11managed 13to 08mug $2 6for3 %mug_amount $+ ! $nick $+ 's new balance is3 $chr(36) $+ $readini($balancefile, Users, $nick). $2's 0new balance is3 $chr(36) $+ $readini($balancefile, Users, %target).
+      } 
     }
     else {
       msg $chan $nick, 9D08U07M04B06A02S12S 11L03O09L 08U 07F04A06I02L! No luck this time.
