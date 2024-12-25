@@ -1,3 +1,4 @@
+
 View Paste
 ; Path to store user balances
 alias balancefile return user_balances.ini
@@ -75,37 +76,53 @@ on *:TEXT:*:#: {
 
   ; Command: .mug <user> (with a 2-minute cooldown and 10% success rate)
   if ($1 == .mug) && ($2) {
+    ; Check if cooldown exists
     if ($($+(%,mug_cooldown.,$nick),2)) {
       var %remaining = $calc($($+(%,mug_cooldown.,$nick),2) - $ctime)
       if (%remaining > 0) {
         var %minutes = $int($calc(%remaining / 60))
         var %seconds = $calc(%remaining % 60)
-        msg $chan $nick, u slut, you need to wait52 %minutes minutes and62 %seconds seconds before you can mug again!
+        msg $chan $nick, u slut, you need to wait4 %minutes minutes and4 %seconds seconds before you can mug again!
         halt
       }
     }
+
+    ; Set a 2-minute cooldown
     set %mug_cooldown. $+ $nick $calc($ctime + 120)
+
+    ; Ensure the target user exists in the balance file
     var %target = $2
     if (!$readini($balancefile, Users, %target)) {
       msg $chan $nick, $2 does not exist.
       halt
     }
-    var %success_chance = $rand(1, 3)
-    if (%success_chance <= 1) {  ; 10% success rate
+
+    ; Determine mugging success (10% success rate)
+    var %success_chance = $rand(1, 10)
+    if (%success_chance <= 1) {  ; Successful mugging
       var %target_balance = $readini($balancefile, Users, %target)
       if (%target_balance < 20) {
         msg $chan $nick, $2 doesn't have enough money to be mugged.
       }
       else {
-        var %mug_amount = $rand(20, $calc(%target_balance * 0.3))
+        var %mug_amount = $rand(20, $calc(%target_balance * 0.3)) ; Up to 30% of target's balance
         writeini $balancefile Users %target $calc(%target_balance - %mug_amount)
         var %mugger_balance = $readini($balancefile, Users, $nick)
         writeini $balancefile Users $nick $calc(%mugger_balance + %mug_amount)
-        msg $chan 9OMG $nick 9you 11managed 13to 08mug $2 6for3 %mug_amount $+ ! $nick $+ 's new balance is3 $chr(36) $+ $readini($balancefile, Users, $nick). $2's 0new balance is3 $chr(36) $+ $readini($balancefile, Users, %target).
-      } 
+        msg $chan 9OMG $nick 9you 11managed 13to 08mug $2 6for3 $ %mug_amount $+ ! $nick $+ 's new balance is3 $chr(36) $+ $readini($balancefile, Users, $nick). $2's 0new balance is3 $chr(36) $+ $readini($balancefile, Users, %target).
+      }
     }
-    else {
-      msg $chan $nick, 9D08U07M04B06A02S12S 11L03O09L 08U 07F04A06I02L! No luck this time.
+    else {  ; Failed mugging, apply penalty
+      var %penalty = $rand(1000, 10000)
+      var %user_balance = $readini($balancefile, Users, $nick)
+      if (%user_balance >= %penalty) {
+        writeini $balancefile Users $nick $calc(%user_balance - %penalty)
+        msg $chan $nick, 9FAIL! Mugging failed, and it cost you3 $chr(36) $+ %penalty to bail out of 4JAIL Your new balance is3 $chr(36) $+ $readini($balancefile, Users, $nick).
+      }
+      else {
+        msg $chan $nick, 9FAIL! Mugging failed, but you don’t have enough money to pay the penalty. You're now completely broke!
+        writeini $balancefile Users $nick 0
+      }
     }
   }
 
