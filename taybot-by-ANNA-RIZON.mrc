@@ -1,5 +1,4 @@
-
-View Paste
+#ANNA ON IRC.RIZON.NET #WORLD-CHAT 2022
 ; Path to store user balances
 alias balancefile return user_balances.ini
 
@@ -23,14 +22,47 @@ on *:TEXT:*:#: {
     halt
   }
 
+  ; Command: .buy shield (protects user from mugging for 15 minutes, costs 1/5 of their balance)
+  if ($1 == .buy) && ($2 == shield) {
+    var %balance = $readini($balancefile, Users, $nick)
+    if (%balance <= 0) {
+      msg $chan $nick, you don’t have enough money to buy a shield.
+    }
+    elseif ($($+(%,shield_active.,$nick),2)) {
+      msg $chan $nick, you already have an active shield.
+    }
+    else {
+      var %cost = $int($calc(%balance / 5))
+      writeini $balancefile Users $nick $calc(%balance - %cost)
+      set -u900 %shield_active. $+ $nick 1
+      msg $chan $nick, you bought a shield for $ %cost ! You are now protected from mugging for 15 minutes and it cost you 1/5 of your benez. Your new balance is $ $+ $readini($balancefile, Users, $nick).
+    }
+  }
+
+  ; Command: .buy power (50/50 mugging success chance for 15 minutes, costs 1/3 of their balance)
+  if ($1 == .buy) && ($2 == power) {
+    var %balance = $readini($balancefile, Users, $nick)
+    if (%balance <= 0) {
+      msg $chan $nick, you don’t have enough money to buy power.
+    }
+    elseif ($($+(%,power_active.,$nick),2)) {
+      msg $chan $nick, you already have active power.
+    }
+    else {
+      var %cost = $int($calc(%balance / 3))
+      writeini $balancefile Users $nick $calc(%balance - %cost)
+      set -u900 %power_active. $+ $nick 1
+      msg $chan $nick, you bought power for $ %cost ! Mugging success chance is now 50/50 for 15 minutes. Your new balance is $ $+ $readini($balancefile, Users, $nick).
+    }
+  }
   ; Command: .bene (gives the user a random amount between $50 and $500 with a 5-minute cooldown)
   if ($1 == .bene) {
     if ($($+(%,bene_cooldown.,$nick),2)) {
-      msg $chan $nick, u whore u gotta w8 12FIVE minutes before begging for .bene'z again.
+      msg $chan $nick, 0,64u 00,52w00,40h00,28o00,1r00,64e 00,52u 00,40g00,28o00,1t00,64t00,52a 00,40w00,288 12FIVE minutes before begging for .bene'z again.
       halt
     }
     set -u300 %bene_cooldown. $+ $nick 1
-    var %amount = $rand(50, 2000)
+    var %amount = $rand(1050, 2000)
     var %balance = $readini($balancefile, Users, $nick)
     writeini $balancefile Users $nick $calc(%balance + %amount)
     msg $chan 8 $+ $nick $+  received 3 $+ $ $+ %amount $+ ! 4Y06o02u12r 11n03e09w 08b07a04l06a02n12c11e 03i09s3 $chr(36) $+ $readini($balancefile, Users, $nick).
@@ -82,7 +114,7 @@ on *:TEXT:*:#: {
       if (%remaining > 0) {
         var %minutes = $int($calc(%remaining / 60))
         var %seconds = $calc(%remaining % 60)
-        msg $chan $nick, u slut, you need to wait4 %minutes minutes and4 %seconds seconds before you can mug again!
+        msg $chan $nick, 0,73u 00,74s00,75l00,71u00,72t00,73, 00,74y00,75o00,71u 00,72n00,73e00,74e00,75d 00,71t00,72o 00,73w00,74a00,75i00,71t %minutes minutes and4 %seconds seconds 0,72b00,73e00,74f00,75o00,71r00,72e 00,73y00,74o00,75u 00,71c00,72a00,73n 00,74m00,75u00,71g 00,72a00,73g00,74a00,75i00,71n00,72!
         halt
       }
     }
@@ -96,16 +128,20 @@ on *:TEXT:*:#: {
       msg $chan $nick, $2 does not exist.
       halt
     }
-
+    ; Check if the target has a shield
+    if ($($+(%,shield_active.,%target),2)) {
+      msg $chan $nick, $2 is protected by a shield. Mugging failed!
+      halt
+    }
     ; Determine mugging success (10% success rate)
-    var %success_chance = $rand(1, 10)
+    var %success_chance = $rand(1, 3)
     if (%success_chance <= 1) {  ; Successful mugging
       var %target_balance = $readini($balancefile, Users, %target)
       if (%target_balance < 20) {
         msg $chan $nick, $2 doesn't have enough money to be mugged.
       }
       else {
-        var %mug_amount = $rand(20, $calc(%target_balance * 0.3)) ; Up to 30% of target's balance
+        var %mug_amount = $rand(20, $calc(%target_balance * 0.3))
         writeini $balancefile Users %target $calc(%target_balance - %mug_amount)
         var %mugger_balance = $readini($balancefile, Users, $nick)
         writeini $balancefile Users $nick $calc(%mugger_balance + %mug_amount)
@@ -113,11 +149,11 @@ on *:TEXT:*:#: {
       }
     }
     else {  ; Failed mugging, apply penalty
-      var %penalty = $rand(1000, 10000)
+      var %penalty = $rand(500, 1000)
       var %user_balance = $readini($balancefile, Users, $nick)
       if (%user_balance >= %penalty) {
         writeini $balancefile Users $nick $calc(%user_balance - %penalty)
-        msg $chan $nick, 9FAIL! Mugging failed, and it cost you3 $chr(36) $+ %penalty to bail out of 4JAIL Your new balance is3 $chr(36) $+ $readini($balancefile, Users, $nick).
+        msg $chan $nick, 9FAIL! 2,2 0,1DOCTOR4,4 2,2  Its the warden! looks like u need horse tranquilizer injection for your autism! for TWO minutes you are unable to speak, only drool. It cost you 3 $chr(36) $+ %penalty to get out of the 4HOSPITAL 0,63u00,61r 00,62n00,63u 00,61b00,62a00,63l00,61a00,62n00,63c00,61e is3 $chr(36) $+ $readini($balancefile, Users, $nick).
       }
       else {
         msg $chan $nick, 9FAIL! Mugging failed, but you don’t have enough money to pay the penalty. You're now completely broke!
@@ -126,13 +162,13 @@ on *:TEXT:*:#: {
     }
   }
 
-  ; Command: .top5 (shows the top 5 users with the most money)
+  ; Command: !top10 (shows the top 10 users with the most money)
   if ($1 == .top5) {
     var %i = 1
     var %users = $ini($balancefile, Users, 0)
     var %scores = ""
 
-    ; Iterate over each user in the ini file and prepare for sorting
+    ; Iterate over each user in the INI file and prepare for sorting
     while (%i <= %users) {
       var %nick = $ini($balancefile, Users, %i)
       var %balance = $readini($balancefile, Users, %nick)
@@ -143,14 +179,14 @@ on *:TEXT:*:#: {
     ; Sort the scores in descending order by balance
     var %sorted = $sorttok(%scores, 124, rn)
 
-    ; Output the top 5 users
-    msg $chan 09Top 115 13Richest 08Users:
+    ; Output the top 10 users
+    msg $chan 56Top 59 $+ 10 63Richest 68Users:
     var %i = 1
-    while (%i <= 5) && ($gettok(%sorted, %i, 124) != $null) {
+    while (%i <= 10) && ($gettok(%sorted, %i, 124) != $null) {
       var %user_entry = $gettok(%sorted, %i, 124)
       var %balance = $gettok(%user_entry, 1, 44)
       var %nick = $gettok(%user_entry, 2, 44)
-      msg $chan %i. %nick - $ %balance
+      msg $chan 9 %i $+ 11 %nick - 3$4 %balance
       inc %i
     }
   }
@@ -179,6 +215,6 @@ on *:TEXT:*:#: {
 
   ; Command: .commands (lists all available commands)
   if ($1 == .commands) {
-    notice $nick Available commands: .bene, .give <user> <amount>, .mug <user>, .bet <amount>, .bank, .top5
+    notice $nick Available commands: .bene, .give <user> <amount>, .mug <user>, .bet <amount>, .bank, .top5, .buy shield (15 minutes of shielding for 1/3 of your benes), .buy power (mugging success 50/50 for 15 minutes costing you 1/3 of your benes!
   }
 }
