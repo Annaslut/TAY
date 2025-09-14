@@ -57,11 +57,27 @@ on *:TEXT:*:#: {
   }
   ; Command: .bene (gives the user a random amount between $50 and $500 with a 5-minute cooldown)
   if ($1 == .bene) {
+    ; Check if user is on cooldown
     if ($($+(%,bene_cooldown.,$nick),2)) {
-      msg $chan $nick, 0,64u 00,52w00,40h00,28o00,1r00,64e 00,52u 00,40g00,28o00,1t00,64t00,52a 00,40w00,288 12FIVE minutes before begging for .bene'z again.
-      halt
+      ; Get cooldown start time
+      var %cooldown_start = $($+(%,bene_cooldown_time.,$nick),2)
+      ; Calculate seconds left (300 seconds = 5 minutes)
+      var %seconds_left = $calc(300 - ($ctime - %cooldown_start))
+      if (%seconds_left > 0) {
+        ; Convert to minutes and seconds
+        var %minutes = $int($calc(%seconds_left / 60))
+        var %seconds = $calc(%seconds_left % 60)
+        msg $chan $nick, 0,64u 00,52w00,40h00,28o00,1r00,64e 00,52u 00,40g00,28o00,1t00,64t00,52a 00,40w00,288 12 $+ %minutes minute $+ $iif(%minutes != 1,s) and %seconds second $+ $iif(%seconds != 1,s) before begging for .bene'z again.
+        halt
+      }
+      ; Clear expired cooldown
+      unset %bene_cooldown. $+ $nick
+      unset %bene_cooldown_time. $+ $nick
     }
+    ; Set cooldown with timestamp
     set -u300 %bene_cooldown. $+ $nick 1
+    set -u300 %bene_cooldown_time. $+ $nick $ctime
+    ; Original currency logic
     var %amount = $rand(1050, 2000)
     var %balance = $readini($balancefile, Users, $nick)
     writeini $balancefile Users $nick $calc(%balance + %amount)
